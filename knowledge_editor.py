@@ -15,7 +15,7 @@ import sys
 class KnowledgeEditor:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("📚 知识库编辑器")
+        self.root.title("⚙️ 基础配置")
         self.root.geometry("780x700")
         self.root.minsize(720, 600)
 
@@ -55,11 +55,12 @@ class KnowledgeEditor:
         nav_frame.pack(side="left", fill="y", padx=(0, 5))
         nav_frame.pack_propagate(False)
 
-        tk.Label(nav_frame, text="知识库模块", font=("微软雅黑", 10, "bold"),
+        tk.Label(nav_frame, text="配置模块", font=("微软雅黑", 10, "bold"),
                  bg="#f5f5f5", pady=8).pack()
 
         self.nav_buttons = []
         modules = [
+            ("🔑 API 配置", "API配置"),
             ("📋 基本信息", "基本信息"),
             ("🎭 AI性格", "AI性格设定"),
             ("📦 产品信息", "产品信息"),
@@ -141,8 +142,9 @@ class KnowledgeEditor:
         if self.data and not messagebox.askyesno("新建", "当前有未保存的内容，确定新建吗？"):
             return
         self.data = {
+            "API配置": {"API URL": "https://open.bigmodel.cn/api/paas/v4", "API Key": "", "模型名称": "glm-4-flash"},
             "基本信息": {"品牌名称": "", "课程类型": "", "目标客户": "", "联系方式": ""},
-            "AI性格设定": "",
+            "AI性格设定": {"人设描述": "", "性格规则": []},
             "产品信息": {"课程列表": [], "课程优势": []},
             "常见问题与回复": [],
             "成交话术": {"引导试听": [], "促成报名": [], "应对犹豫": [], "逼单话术": []},
@@ -161,6 +163,8 @@ class KnowledgeEditor:
             # 兼容旧版数据：确保新字段存在
             if "AI性格设定" not in self.data:
                 self.data["AI性格设定"] = ""
+            if "API配置" not in self.data:
+                self.data["API配置"] = {"API URL": "https://open.bigmodel.cn/api/paas/v4", "API Key": "", "模型名称": "glm-4-flash"}
             self._switch_module("基本信息")
         except Exception as e:
             messagebox.showerror("加载失败", f"无法加载文件：\n{e}")
@@ -192,7 +196,9 @@ class KnowledgeEditor:
     def _flush_current_module(self):
         """把当前编辑中的内容写回 self.data"""
         m = self.current_module
-        if m == "基本信息":
+        if m == "API配置":
+            self._collect_api_config()
+        elif m == "基本信息":
             self._collect_basic_info()
         elif m == "产品信息":
             self._collect_products()
@@ -220,6 +226,7 @@ class KnowledgeEditor:
         self._clear_content()
 
         builders = {
+            "API配置": self._build_api_config,
             "基本信息": self._build_basic_info,
             "AI性格设定": self._build_personality,
             "产品信息": self._build_products,
@@ -253,6 +260,136 @@ class KnowledgeEditor:
             widget.focus_set()
         except Exception:
             pass
+
+    # ═══════════════════════════════════════════════
+    # 模块0：API 配置
+    # ═══════════════════════════════════════════════
+
+    def _build_api_config(self):
+        f = self.scrollable_frame
+        cfg = self.data.get("API配置", {})
+
+        tk.Label(f, text="🔑 API 配置", font=("微软雅黑", 14, "bold")).pack(
+            anchor="w", padx=20, pady=(15, 5))
+        tk.Label(f, text="配置 AI 大模型的接口信息。修改后需重启主程序才能生效。",
+                 font=("微软雅黑", 9), fg="#888", wraplength=600, justify="left").pack(
+            anchor="w", padx=20, pady=(0, 10))
+
+        # API URL
+        tk.Label(f, text="🌐 API Base URL：", font=("微软雅黑", 10, "bold"),
+                 fg="#333").pack(anchor="w", padx=20, pady=(10, 3))
+        self._api_url_entry = tk.Entry(f, font=("微软雅黑", 10), relief="solid", bd=1, width=70)
+        self._api_url_entry.insert(0, cfg.get("API URL", "https://open.bigmodel.cn/api/paas/v4"))
+        self._api_url_entry.pack(padx=20, pady=2, fill="x")
+
+        # 预设 URL 按钮
+        tk.Label(f, text="⚡ 常用 API 快速选择：", font=("微软雅黑", 9), fg="#555").pack(
+            anchor="w", padx=20, pady=(8, 3))
+        presets_frame = tk.Frame(f)
+        presets_frame.pack(anchor="w", padx=20, pady=(0, 10))
+        presets = [
+            ("智谱 GLM", "https://open.bigmodel.cn/api/paas/v4"),
+            ("DeepSeek", "https://api.deepseek.com/v1"),
+            ("OpenAI", "https://api.openai.com/v1"),
+            ("通义千问", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
+            ("月之暗面", "https://api.moonshot.cn/v1"),
+        ]
+        for name, url in presets:
+            tk.Button(presets_frame, text=name, font=("微软雅黑", 8), bg="#e3f2fd", fg="#1565C0",
+                      relief="groove", padx=8, pady=2, cursor="hand2",
+                      command=lambda u=url: (self._api_url_entry.delete(0, "end"),
+                                             self._api_url_entry.insert(0, u))
+                      ).pack(side="left", padx=3)
+
+        # API Key
+        tk.Label(f, text="🔐 API Key：", font=("微软雅黑", 10, "bold"),
+                 fg="#333").pack(anchor="w", padx=20, pady=(10, 3))
+        tk.Label(f, text="你的密钥只保存在本地 JSON 文件中，不会上传到任何服务器。",
+                 font=("微软雅黑", 9), fg="#888").pack(anchor="w", padx=20, pady=(0, 3))
+
+        key_frame = tk.Frame(f)
+        key_frame.pack(padx=20, pady=2, fill="x")
+        self._api_key_var = tk.StringVar(value=cfg.get("API Key", ""))
+        self._api_key_entry = tk.Entry(key_frame, font=("微软雅黑", 10), relief="solid", bd=1,
+                                       textvariable=self._api_key_var, show="*")
+        self._api_key_entry.pack(side="left", fill="x", expand=True)
+        # 显示/隐藏切换
+        self._show_key_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(key_frame, text="显示", font=("微软雅黑", 9), variable=self._show_key_var,
+                       command=lambda: self._api_key_entry.config(
+                           show="" if self._show_key_var.get() else "*")
+                       ).pack(side="left", padx=(8, 0))
+
+        # 模型名称
+        tk.Label(f, text="🤖 模型名称：", font=("微软雅黑", 10, "bold"),
+                 fg="#333").pack(anchor="w", padx=20, pady=(10, 3))
+        self._model_entry = tk.Entry(f, font=("微软雅黑", 10), relief="solid", bd=1, width=70)
+        self._model_entry.insert(0, cfg.get("模型名称", "glm-4-flash"))
+        self._model_entry.pack(padx=20, pady=2, fill="x")
+
+        # 预设模型按钮
+        tk.Label(f, text="⚡ 常用模型快速选择：", font=("微软雅黑", 9), fg="#555").pack(
+            anchor="w", padx=20, pady=(8, 3))
+        model_frame = tk.Frame(f)
+        model_frame.pack(anchor="w", padx=20, pady=(0, 15))
+        models = [
+            ("GLM-4-Flash", "glm-4-flash"),
+            ("GLM-4-Plus", "glm-4-plus"),
+            ("DeepSeek-V3", "deepseek-chat"),
+            ("DeepSeek-R1", "deepseek-reasoner"),
+            ("GPT-4o", "gpt-4o"),
+            ("GPT-4o-mini", "gpt-4o-mini"),
+            ("通义千问", "qwen-turbo"),
+        ]
+        for name, model in models:
+            tk.Button(model_frame, text=name, font=("微软雅黑", 8), bg="#e8f5e9", fg="#2E7D32",
+                      relief="groove", padx=8, pady=2, cursor="hand2",
+                      command=lambda m=model: (self._model_entry.delete(0, "end"),
+                                              self._model_entry.insert(0, m))
+                      ).pack(side="left", padx=3)
+
+        # 测试连接按钮
+        tk.Button(f, text="🔌 测试连接", font=("微软雅黑", 10), bg="#FF9800", fg="white",
+                  relief="flat", padx=20, pady=6, cursor="hand2",
+                  command=self._test_api_connection).pack(anchor="w", padx=20, pady=(5, 5))
+
+        self._api_test_result = tk.Label(f, text="", font=("微软雅黑", 9), wraplength=600, justify="left")
+        self._api_test_result.pack(anchor="w", padx=20, pady=(0, 10))
+
+    def _test_api_connection(self):
+        """测试 API 连接"""
+        try:
+            from openai import OpenAI
+            url = self._api_url_entry.get().strip()
+            key = self._api_key_var.get().strip()
+            model = self._model_entry.get().strip()
+            if not key:
+                self._api_test_result.config(text="⚠️ 请先填写 API Key", fg="#e74c3c")
+                return
+            if not model:
+                self._api_test_result.config(text="⚠️ 请先填写模型名称", fg="#e74c3c")
+                return
+            self._api_test_result.config(text="⏳ 正在测试连接...", fg="#888")
+            self.root.update()
+            client = OpenAI(api_key=key, base_url=url)
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": "你好，回复OK即可"}],
+                max_tokens=10,
+            )
+            answer = resp.choices[0].message.content.strip()
+            self._api_test_result.config(
+                text=f"✅ 连接成功！模型回复：{answer}", fg="#4CAF50")
+            self._collect_api_config()  # 测试成功自动保存
+        except Exception as e:
+            self._api_test_result.config(text=f"❌ 连接失败：{e}", fg="#e74c3c")
+
+    def _collect_api_config(self):
+        self.data["API配置"] = {
+            "API URL": self._api_url_entry.get().strip(),
+            "API Key": self._api_key_var.get().strip(),
+            "模型名称": self._model_entry.get().strip(),
+        }
 
     # ═══════════════════════════════════════════════
     # 模块1：基本信息

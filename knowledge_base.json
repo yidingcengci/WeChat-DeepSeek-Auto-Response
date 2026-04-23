@@ -1,4 +1,10 @@
 {
+  "API配置": {
+    "API URL": "https://open.bigmodel.cn/api/paas/v4",
+    "API Key": "YOUR_API_KEY_HERE",
+    "模型名称": "glm-4-flash"
+  },
+
   "基本信息": {
     "品牌名称": "您的英语培训品牌",
     "课程类型": "英语线上培训课",

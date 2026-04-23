@@ -34,7 +34,21 @@ logging.basicConfig(
 log = logging.getLogger("wechat_bot")
 
 ssl._create_default_https_context = ssl._create_unverified_context
-client = OpenAI(api_key="YOUR_API_KEY_HERE", base_url="https://open.bigmodel.cn/api/paas/v4")
+
+# ======== 全局 AI 客户端（启动时从知识库读取配置） ========
+client = None  # 由 init_ai_client() 初始化
+AI_MODEL = "glm-4-flash"  # 默认值，由 init_ai_client() 覆盖
+
+
+def init_ai_client(kb):
+    """从知识库的 API配置 初始化 OpenAI 客户端"""
+    global client, AI_MODEL
+    cfg = kb.get("API配置", {}) if kb else {}
+    api_url = cfg.get("API URL", "https://open.bigmodel.cn/api/paas/v4")
+    api_key = cfg.get("API Key", "YOUR_API_KEY_HERE")
+    AI_MODEL = cfg.get("模型名称", "glm-4-flash")
+    client = OpenAI(api_key=api_key, base_url=api_url)
+    log.info(f"AI 客户端已初始化: url={api_url}, model={AI_MODEL}")
 
 
 # ======== Tkinter 提示窗口（独立线程） ========
@@ -486,7 +500,7 @@ def do_reply(msg, system_prompt, input_x, input_y, tip_win):
         tip_win.update("  AI 思考中...")
         log.info(f"AI 回复中，消息: {msg[:30]}...")
         response = client.chat.completions.create(
-            model="glm-4-flash",
+            model=AI_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": msg},
@@ -523,6 +537,7 @@ def main():
 
     try:
         kb = load_knowledge_base()
+        init_ai_client(kb)
         system_prompt = build_system_prompt(kb)
 
         # ======== 阶段1：捕获坐标 ========
