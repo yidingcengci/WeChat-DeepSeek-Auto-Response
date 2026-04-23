@@ -1,5 +1,7 @@
 # WeChat-DeepSeek-Auto-Response
 
+> **声明：** 本项目 Fork 自 [WeChat-DeepSeek-Auto-Response](https://github.com/yidingcengci/WeChat-DeepSeek-Auto-Response)，原始作者为 **Lao Chou**。我们在原项目基础上进行了功能扩展和改进，核心视觉识别与自动回复逻辑归功于原作者。
+
 基于视觉的非侵入式微信自动回复程序，零封号风险。通过 OCR 识别聊天内容，调用 AI 接口生成回复，模拟键鼠自动发送。
 
 ## 特性
@@ -22,40 +24,32 @@
 | 文件 | 说明 |
 |------|------|
 | `微信AI自动回复.exe` | 主程序 - 微信自动回复 |
-| `知识库编辑器.exe` | 工具 - 图形化编辑知识库 |
-| `knowledge_base.json` | 知识库配置文件 |
+| `基础配置.exe` | 工具 - 图形化配置 API、知识库等 |
+| `knowledge_base.json` | 配置文件（API Key、知识库等） |
 
 把这三个文件放在**同一个文件夹**下。
 
 ### 2. 配置 API Key
 
-用任意文本编辑器打开 `Auto_choose_new_sender.py`，找到这一行：
+双击运行 `基础配置.exe`，进入左侧第一个模块 **🔑 API 配置**：
 
-```python
-client = OpenAI(api_key="YOUR_API_KEY_HERE", base_url="https://open.bigmodel.cn/api/paas/v4")
-```
-
-将 `YOUR_API_KEY_HERE` 替换为你的 API Key。
-
-**支持的 API 接口：**
-
-| 提供商 | base_url | 获取地址 |
-|--------|----------|----------|
-| 智谱 GLM | `https://open.bigmodel.cn/api/paas/v4` | [bigmodel.cn](https://open.bigmodel.cn)（有免费额度） |
-| DeepSeek | `https://api.deepseek.com` | [deepseek.com](https://platform.deepseek.com) |
-
-> 如果你使用的是打包好的 exe，需要修改源码后重新打包，或者等后续版本支持外部配置文件。
+1. 选择 API 平台（智谱 GLM / DeepSeek / OpenAI / 通义千问 / 月之暗面）
+2. 填入你的 **API Key**（密码框隐藏，可勾选显示）
+3. 选择模型名称（支持一键选择常用模型）
+4. 点击 **🔌 测试连接** 验证配置是否正确
+5. 点 **💾 保存到文件** 保存配置
 
 ### 3. 编辑知识库
 
-双击运行 `知识库编辑器.exe`，界面左侧有 6 个模块：
+双击运行 `基础配置.exe`，界面左侧有 7 个模块：
 
-1. **📋 基本信息** - 品牌名、课程类型、目标客户、联系方式
-2. **🎭 AI 性格** - 设定 AI 的说话风格（支持快速模板 + 自定义规则）
-3. **📦 产品信息** - 课程/产品列表和优势
-4. **❓ 常见问题** - 关键词匹配 + 回复内容
-5. **💬 成交话术** - 引导试听、促成报名、应对犹豫、逼单话术
-6. **⚠️ 注意事项** - 禁止回复的场景
+1. **🔑 API 配置** - 大模型接口地址、API Key、模型名称（支持测试连接）
+2. **📋 基本信息** - 品牌名、课程类型、目标客户、联系方式
+3. **🎭 AI 性格** - 设定 AI 的说话风格（支持快速模板 + 自定义规则）
+4. **📦 产品信息** - 课程/产品列表和优势
+5. **❓ 常见问题** - 关键词匹配 + 回复内容
+6. **💬 成交话术** - 引导试听、促成报名、应对犹豫、逼单话术
+7. **⚠️ 注意事项** - 禁止回复的场景
 
 编辑完成后点 **「💾 保存到文件」** 写入 `knowledge_base.json`。
 
@@ -95,7 +89,7 @@ pip install pyautogui pyperclip pynput pillow easyocr opencv-python openai
 python Auto_choose_new_sender.py
 ```
 
-### 运行知识库编辑器
+### 运行基础配置
 
 ```bash
 python knowledge_editor.py
@@ -107,8 +101,8 @@ python knowledge_editor.py
 # 安装 PyInstaller
 pip install pyinstaller
 
-# 打包知识库编辑器
-pyinstaller --noconfirm --onefile --windowed --name "知识库编辑器" knowledge_editor.py
+# 打包基础配置编辑器
+pyinstaller --noconfirm --onefile --windowed --name "基础配置" knowledge_editor.py
 
 # 打包主程序（附带知识库文件）
 pyinstaller --noconfirm --onefile --windowed --name "微信AI自动回复" --add-data "knowledge_base.json;." Auto_choose_new_sender.py
@@ -122,15 +116,13 @@ pyinstaller --noconfirm --onefile --windowed --name "微信AI自动回复" --add
 
 ```
 WeChat-DeepSeek-Auto-Response/
-├── Auto_choose_new_sender.py   # 主程序 - 微信AI自动回复
-├── knowledge_editor.py         # 知识库编辑器 GUI
-├── sender_Win.py               # Windows 平台发送适配器
-├── sender_macOS.py             # macOS 平台发送适配器
-├── knowledge_base.json         # 知识库配置文件
-├── releases/                   # 打包好的 EXE 文件
-│   ├── 微信AI自动回复.exe
-│   └── 知识库编辑器.exe
-└── README.md
+├── Auto_choose_new_sender.py   # 主程序 - 微信AI自动回复（原始文件，已修改）
+├── knowledge_editor.py         # 基础配置 GUI（新增文件）
+├── sender_Win.py               # Windows 平台发送适配器（原始文件）
+├── sender_macOS.py             # macOS 平台发送适配器（原始文件）
+├── knowledge_base.json         # 配置文件（API、知识库等）
+├── README.md
+└── .gitignore
 ```
 
 ## 知识库配置说明
@@ -139,6 +131,11 @@ WeChat-DeepSeek-Auto-Response/
 
 ```json
 {
+  "API配置": {
+    "API URL": "https://open.bigmodel.cn/api/paas/v4",
+    "API Key": "你的API密钥",
+    "模型名称": "glm-4-flash"
+  },
   "基本信息": {
     "品牌名称": "你的品牌",
     "课程类型": "产品类型",
@@ -170,15 +167,34 @@ WeChat-DeepSeek-Auto-Response/
 
 ## 注意事项
 
-- 确保已授权 AI 接口的 API 密钥
+- 确保已授权 AI 接口的 API 密钥（在「基础配置.exe」的 API 配置模块中设置）
 - 运行期间不要移动微信窗口位置
 - 程序基于纯视觉识别，不修改微信任何文件，零封号风险
 - `knowledge_base.json` 需要和 exe 放在同一目录下
 
 ## 许可证
 
-MIT License
+本项目遵循 [MIT License](LICENSE) 开源。
 
-## 致谢
+## 致谢与版权声明
 
-- 原始项目：[yidingcengci/WeChat-DeepSeek-Auto-Response](https://github.com/yidingcengci/WeChat-DeepSeek-Auto-Response)
+### 原始项目
+
+- **项目名称：** WeChat-DeepSeek-Auto-Response
+- **原始作者：** Lao Chou (laochou6423@gmail.com)
+- **原始仓库：** [yidingcengci/WeChat-DeepSeek-Auto-Response](https://github.com/yidingcengci/WeChat-DeepSeek-Auto-Response)
+- **核心功能：** 基于 OCR 的微信消息识别、AI 回复生成、键鼠模拟发送、图像预处理与对比
+
+### 本 Fork 的改动
+
+在原始项目基础上，我们新增/修改了以下功能：
+
+| 改动 | 说明 |
+|------|------|
+| 🔑 API 配置模块 | 支持在 GUI 中配置 API 地址、密钥、模型，支持一键测试连接 |
+| 📋 基础配置 GUI (`knowledge_editor.py`) | 新增图形化配置工具，包含 API 配置、知识库编辑等 7 个模块 |
+| 🎭 AI 性格设定 | 新增人设描述 + 性格规则列表，支持快速模板和自定义规则 |
+| 📦 知识库驱动 | 基于 `knowledge_base.json` 的完整知识库系统（产品/FAQ/话术/规则） |
+| 🖥️ 打包为 EXE | PyInstaller 打包，Windows 用户无需安装 Python 即可使用 |
+
+> 原始项目的核心代码（OCR 识别、自动回复逻辑、Windows/macOS 发送适配器等）版权归属原作者 Lao Chou。我们的改动部分同样以 MIT License 开源。
